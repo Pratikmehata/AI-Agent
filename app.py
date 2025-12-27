@@ -13,103 +13,89 @@ import logging
 load_dotenv()
 
 # ============================================
-# PRODUCTION CONFIGURATION FOR RAILWAY
+# CONFIGURATION
 # ============================================
 app = Flask(__name__)
 CORS(app)
 
-# Production settings
-app.config.update(
-    SECRET_KEY=os.environ.get("FLASK_SECRET_KEY", os.urandom(24)),
-    SESSION_COOKIE_SECURE=True,
-    SESSION_COOKIE_HTTPONLY=True,
-    SESSION_COOKIE_SAMESITE='Lax',
-    MAX_CONTENT_LENGTH=16 * 1024 * 1024,
+# Simple logging for Railway
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s [%(levelname)s] %(message)s'
 )
-
-# Configure logging for Railway
-if os.environ.get("RAILWAY_ENVIRONMENT"):
-    # Railway logs to stdout
-    logging.basicConfig(
-        level=logging.INFO,
-        format='%(asctime)s [%(levelname)s] %(message)s',
-        handlers=[logging.StreamHandler()]
-    )
-else:
-    # Local development logging
-    logging.basicConfig(level=logging.DEBUG)
-
 logger = logging.getLogger(__name__)
 
-# ============================================
-# CONFIGURATION VARIABLES
-# ============================================
+# Configuration
 GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY")
 MODEL_NAME = os.environ.get("MODEL_NAME", "gemini-1.5-flash")
 TEMPERATURE = float(os.environ.get("TEMPERATURE", 0.7))
 MAX_TOKENS = int(os.environ.get("MAX_TOKENS", 3000))
 PORT = int(os.environ.get("PORT", 5000))
-APP_ENV = os.environ.get("RAILWAY_ENVIRONMENT", "development")
 
-# ============================================
-# API SETUP WITH RAILWAY-OPTIMIZED FALLBACK
-# ============================================
+# Initialize model globally
+gemini_model = None
+DEMO_MODE = False
+
 def setup_gemini():
-    """Setup Gemini API with Railway-optimized fallback"""
+    """Setup Gemini API"""
+    global gemini_model, DEMO_MODE
+    
     if not GOOGLE_API_KEY:
         logger.warning("GOOGLE_API_KEY not found. Running in demo mode.")
-        return None, True
+        DEMO_MODE = True
+        return
     
     try:
         genai.configure(api_key=GOOGLE_API_KEY)
         logger.info("✅ Google Gemini API configured")
         
-        # Try available models (Railway optimized)
-        models_to_try = [
-            MODEL_NAME,
-            "gemini-1.5-flash",  # Most reliable for production
-            "gemini-1.5-pro",
-            "gemini-1.0-pro",
-            "models/gemini-pro"
-        ]
-        
-        for model_name in models_to_try:
-            try:
-                logger.info(f"🔧 Testing model: {model_name}")
-                model = genai.GenerativeModel(model_name)
-                # Quick test with timeout for Railway
-                test_response = model.generate_content(
-                    "Hello",
-                    request_options={"timeout": 5}
-                )
-                logger.info(f"✅ Using model: {model_name}")
-                return model, False
-            except Exception as e:
-                logger.debug(f"Model {model_name} not available: {str(e)[:80]}")
-                continue
-        
-        logger.error("❌ No working model found. Using demo mode.")
-        return None, True
-        
+        # Try to initialize model
+        try:
+            gemini_model = genai.GenerativeModel(MODEL_NAME)
+            logger.info(f"✅ Using model: {MODEL_NAME}")
+            DEMO_MODE = False
+        except Exception as e:
+            logger.error(f"⚠️ Model error: {e}")
+            logger.info("🔧 Trying fallback models...")
+            
+            # Try fallback models
+            fallback_models = [
+                "gemini-1.5-flash",
+                "gemini-1.5-pro",
+                "gemini-1.0-pro"
+            ]
+            
+            for model_name in fallback_models:
+                try:
+                    gemini_model = genai.GenerativeModel(model_name)
+                    logger.info(f"✅ Using fallback model: {model_name}")
+                    DEMO_MODE = False
+                    break
+                except:
+                    continue
+            
+            if gemini_model is None:
+                logger.error("❌ No working model found. Using demo mode.")
+                DEMO_MODE = True
+                
     except Exception as e:
         logger.error(f"❌ Gemini setup failed: {e}")
-        return None, True
+        DEMO_MODE = True
 
 # Initialize Gemini
-gemini_model, DEMO_MODE = setup_gemini()
+setup_gemini()
 
 # ============================================
-# HELPER FUNCTIONS (KEEP FROM ORIGINAL)
+# HELPER FUNCTIONS
 # ============================================
 def get_gemini_response(prompt, temperature=TEMPERATURE):
-    """Get response from Gemini API with Railway timeout"""
+    """Get response from Gemini API"""
     if DEMO_MODE or gemini_model is None:
-        logger.info("DEMO MODE: Simulating API response")
+        logger.info("📱 DEMO MODE: Simulating response")
         time.sleep(0.5)
         return get_demo_response(prompt)
     
     try:
-        # Add timeout for Railway environment
         response = gemini_model.generate_content(
             prompt,
             generation_config=genai.GenerationConfig(
@@ -117,24 +103,145 @@ def get_gemini_response(prompt, temperature=TEMPERATURE):
                 max_output_tokens=MAX_TOKENS,
                 top_p=0.95,
                 top_k=40
-            ),
-            request_options={"timeout": 30}  # 30-second timeout for Railway
+            )
         )
         return response.text
     except Exception as e:
         logger.error(f"⚠️ Gemini API Error: {e}")
         return get_demo_response(prompt)
 
-# Keep your existing get_demo_response() function unchanged
 def get_demo_response(prompt):
     """Generate demo responses when API is unavailable"""
-    # ... (keep your existing demo response code exactly as is)
+    prompt_lower = prompt.lower()
+    
+    if "market analyst" in prompt_lower or "analyze" in prompt_lower:
+        return """**Market Analysis for AI Engineer**
 
-# Keep your existing agent functions unchanged:
-# market_analyst_agent(), curriculum_designer_agent(), chief_strategist_agent()
+**Top Technical Skills:**
+1. Python (Advanced)
+2. Machine Learning & Deep Learning
+3. TensorFlow/PyTorch
+4. Data Analysis & Statistics
+5. Cloud Platforms (AWS/Azure/GCP)
+6. SQL & Databases
+7. Docker & Kubernetes
+
+**Essential Soft Skills:**
+- Problem-solving
+- Communication
+- Critical thinking
+- Team collaboration
+- Adaptability
+
+**Salary Ranges:**
+- Entry: $90,000 - $120,000
+- Mid: $120,000 - $180,000
+- Senior: $180,000 - $300,000+
+
+**Growth Outlook:**
+- 30% annual job growth
+- High demand across industries
+- Remote work opportunities increasing"""
+    
+    elif "curriculum" in prompt_lower or "learning plan" in prompt_lower:
+        return """# 🎯 3-Month Learning Roadmap
+
+## 📅 **Month 1: Foundation Building**
+### **Week 1-2: Core Fundamentals**
+- Python programming
+- Data analysis basics
+- **Project:** Basic analysis
+
+### **Week 3-4: Machine Learning Intro**
+- Supervised learning
+- Model evaluation
+- **Project:** Predictive model
+
+## **Month 2: Core Development**
+### **Week 5-8: Advanced Topics**
+- Neural networks
+- Deep learning basics
+- **Project:** Image classifier
+
+## **Month 3: Production**
+### **Week 9-12: Deployment**
+- Model deployment
+- Docker basics
+- **Capstone:** Complete project"""
+    
+    else:
+        return f"""# 🌟 Your Learning Journey
+
+## 🎯 Welcome!
+This roadmap guides you from current skills to job-ready professional.
+
+## 📊 **Timeline**
+- **Week 4:** Foundation complete
+- **Week 8:** Portfolio ready
+- **Week 12:** Interview prep
+
+## 🚀 **Next Steps**
+1. Set up environment
+2. Start learning materials
+3. Build projects
+
+**Consistency beats intensity! 🎯**"""
 
 # ============================================
-# RAILWAY-OPTIMIZED ROUTES
+# AI AGENTS WORKFLOW
+# ============================================
+def market_analyst_agent(career_goal, current_skills):
+    """Market Analyst: Identify required skills and trends"""
+    logger.info(f"📈 Analyzing: {career_goal}")
+    
+    prompt = f"""Analyze job market for {career_goal}. Skills: {current_skills}.
+    
+Provide analysis with:
+1. Top technical skills needed
+2. Key soft skills
+3. Salary expectations
+4. Growth opportunities
+    
+Format: Clear bullet points."""
+    
+    response = get_gemini_response(prompt, temperature=0.5)
+    return response
+
+def curriculum_designer_agent(career_goal, current_skills, learning_style, market_analysis):
+    """Curriculum Designer: Create structured learning plan"""
+    logger.info(f"📚 Planning for: {career_goal}")
+    
+    prompt = f"""Create 12-week learning plan for {career_goal}.
+    
+Skills: {current_skills}
+Style: {learning_style}
+    
+Design roadmap with:
+- Weekly objectives
+- Resources
+- Practice exercises
+- Projects
+    
+Format in Markdown."""
+    
+    response = get_gemini_response(prompt, temperature=0.7)
+    return response
+
+def chief_strategist_agent(career_goal, learning_plan):
+    """Chief Strategist: Format final plan"""
+    logger.info(f"🎯 Finalizing: {career_goal}")
+    
+    prompt = f"""Transform this into inspiring roadmap for {career_goal}:
+    
+{learning_plan}
+    
+Add motivation and clear milestones."""
+    
+    response = get_gemini_response(prompt, temperature=0.6)
+    return response
+
+# ============================================
+# FLASK ROUTES
 # ============================================
 @app.route('/')
 def home():
@@ -142,58 +249,46 @@ def home():
 
 @app.route('/generate', methods=['POST'])
 def generate():
-    """Generate learning roadmap with Railway-optimized streaming"""
-    # Input validation
     career_goal = request.form.get('career_goal', '').strip()
     current_skills = request.form.get('current_skills', '').strip()
     learning_style = request.form.get('learning_style', 'balanced').strip()
     
     if not career_goal:
-        def error_stream():
-            yield "data: ERROR: Please enter a career goal\n\n"
-        return Response(error_stream(), mimetype='text/event-stream')
+        return jsonify({"error": "Please enter a career goal"}), 400
     
-    def generate_stream(career_goal, current_skills, learning_style):
+    def generate_stream():
         try:
-            # Step 1: Market Analysis
-            yield "data: 🤖 Step 1/3: Market Analyst analyzing trends...\n\n"
+            yield "data: 🤖 Step 1/3: Analyzing market trends...\n\n"
             market_analysis = market_analyst_agent(career_goal, current_skills)
             yield "data: ✅ Market analysis complete!\n\n"
-            time.sleep(0.3)
+            time.sleep(0.5)
             
-            # Step 2: Curriculum Design
-            yield "data: 📚 Step 2/3: Curriculum Designer creating plan...\n\n"
+            yield "data: 📚 Step 2/3: Creating learning plan...\n\n"
             learning_plan = curriculum_designer_agent(career_goal, current_skills, learning_style, market_analysis)
             yield "data: ✅ Learning plan structured!\n\n"
-            time.sleep(0.3)
+            time.sleep(0.5)
             
-            # Step 3: Final Strategy
-            yield "data: 🎯 Step 3/3: Chief Strategist finalizing...\n\n"
+            yield "data: 🎯 Step 3/3: Finalizing roadmap...\n\n"
             final_output = chief_strategist_agent(career_goal, learning_plan)
             html_output = markdown2.markdown(final_output, extras=['fenced-code-blocks', 'tables'])
             
-            # Build result HTML
             result_html = f"""
-            <div class="result-header">
-                <div style="text-align: center; margin-bottom: 30px;">
-                    <h2 style="color: #f59e0b; margin-bottom: 10px;">🚀 Your AI-Powered Learning Roadmap</h2>
-                    <p style="color: #cbd5e1; font-size: 1.1rem;">Target: <strong>{career_goal}</strong></p>
-                    <div style="margin-top: 10px; padding: 6px 12px; background: rgba(99, 102, 241, 0.2); border-radius: 20px; display: inline-block;">
-                        <span style="color: #cbd5e1; font-size: 0.9rem;">
-                            <i class="fas fa-robot"></i> {'DEMO MODE' if DEMO_MODE else 'LIVE AI - ' + MODEL_NAME}
-                        </span>
-                    </div>
+            <div style="text-align: center; margin-bottom: 30px;">
+                <h2 style="color: #f59e0b;">🚀 Your AI-Powered Learning Roadmap</h2>
+                <p style="color: #cbd5e1;">Target: <strong>{career_goal}</strong></p>
+                <div style="margin-top: 10px; padding: 6px 12px; background: rgba(99, 102, 241, 0.2); border-radius: 20px; display: inline-block;">
+                    <span style="color: #cbd5e1; font-size: 0.9rem;">
+                        <i class="fas fa-robot"></i> {'DEMO MODE' if DEMO_MODE else 'LIVE AI'}
+                    </span>
                 </div>
             </div>
-            <div class="result-card">
-                <div class="roadmap-content">
-                    {html_output}
-                </div>
-                <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1); text-align: center;">
-                    <a href="/" class="btn-secondary" style="display: inline-flex; align-items: center; gap: 8px; padding: 12px 24px; border-radius: 8px; background: #4f46e5; color: white; text-decoration: none; font-weight: 600;">
-                        <i class="fas fa-arrow-left"></i> Create Another Plan
-                    </a>
-                </div>
+            <div style="background: rgba(255,255,255,0.05); padding: 30px; border-radius: 10px;">
+                {html_output}
+            </div>
+            <div style="margin-top: 30px; text-align: center;">
+                <a href="/" style="padding: 12px 24px; border-radius: 8px; background: #4f46e5; color: white; text-decoration: none;">
+                    ← Create Another Plan
+                </a>
             </div>
             """
             
@@ -201,62 +296,31 @@ def generate():
             
         except Exception as e:
             logger.error(f"Generation error: {e}")
-            yield f"data: ERROR: An error occurred while generating your roadmap. Please try again.\n\n"
+            yield f"data: ERROR: {str(e)}\n\n"
     
-    return Response(
-        generate_stream(career_goal, current_skills, learning_style),
-        mimetype='text/event-stream'
-    )
+    return Response(generate_stream(), mimetype='text/event-stream')
 
 @app.route('/health')
 def health():
-    """Health check endpoint for Railway monitoring"""
     return jsonify({
         "status": "healthy",
-        "service": "edu-recommender",
-        "environment": APP_ENV,
         "model": MODEL_NAME,
         "mode": "demo" if DEMO_MODE else "live",
         "timestamp": datetime.now().isoformat()
     })
 
-@app.route('/status')
-def status():
-    """Status endpoint for Railway health checks"""
-    return jsonify({
-        "status": "operational",
-        "version": "1.0.0",
-        "uptime": time.time() - app_start_time if 'app_start_time' in globals() else 0
-    })
-
-# Initialize app start time
-app_start_time = time.time()
-
 # ============================================
-# RAILWAY STARTUP
+# STARTUP
 # ============================================
 if __name__ == '__main__':
-    # Railway provides PORT environment variable
     port = int(os.environ.get("PORT", 5000))
-    host = "0.0.0.0"  # Important for Railway
     
-    print("\n" + "="*60)
-    print("🚀 EDU-RECOMMENDER DEPLOYED ON RAILWAY")
-    print("="*60)
-    print(f"\n🌐 Server starting on: http://{host}:{port}")
+    print("\n" + "="*50)
+    print("🚀 EDU-RECOMMENDER")
+    print("="*50)
+    print(f"🌐 http://0.0.0.0:{port}")
     print(f"🤖 Model: {MODEL_NAME}")
     print(f"🔧 Mode: {'DEMO' if DEMO_MODE else 'LIVE'}")
-    print(f"🏷️  Environment: {APP_ENV}")
+    print("="*50)
     
-    if DEMO_MODE:
-        print("\n⚠️  Running in DEMO MODE")
-        print("   To enable AI features, add GOOGLE_API_KEY to Railway variables")
-    else:
-        print(f"\n✅ AI System Ready!")
-    
-    print("\n📡 Health Check Endpoint:")
-    print(f"   http://{host}:{port}/health")
-    print("\n" + "="*60)
-    
-    # Production server (no debug/reloader)
-    app.run(host=host, port=port, debug=False)
+    app.run(host='0.0.0.0', port=port, debug=False)
