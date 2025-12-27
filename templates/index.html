@@ -1,0 +1,1385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Agentic AI: Lifelong Learning Co-Pilot</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        /* --- CSS Variables --- */
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --secondary: #f59e0b;
+            --secondary-light: #fbbf24;
+            --accent: #8b5cf6;
+            --text-primary: #f8fafc;
+            --text-secondary: #cbd5e1;
+            --bg-dark: #0f172a;
+            --bg-card: rgba(30, 41, 59, 0.7);
+            --bg-card-hover: rgba(30, 41, 59, 0.9);
+            --border-color: rgba(255, 255, 255, 0.1);
+            --success: #10b981;
+            --gradient: linear-gradient(135deg, var(--primary), var(--accent));
+            --gradient-secondary: linear-gradient(135deg, var(--secondary), #f97316);
+            --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 20px 40px -10px rgba(0, 0, 0, 0.4);
+        }
+
+        /* --- Keyframe Animations --- */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -1000px 0; }
+            100% { background-position: 1000px 0; }
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes glow {
+            0%, 100% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.5); }
+            50% { box-shadow: 0 0 30px rgba(99, 102, 241, 0.8); }
+        }
+
+        /* --- General Styles --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Outfit', 'Poppins', sans-serif;
+            line-height: 1.6;
+            color: var(--text-primary);
+            background: var(--bg-dark);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-image: 
+                radial-gradient(circle at 15% 50%, rgba(72, 79, 184, 0.2) 0%, transparent 25%),
+                radial-gradient(circle at 85% 30%, rgba(180, 83, 9, 0.15) 0%, transparent 25%),
+                radial-gradient(circle at 50% 80%, rgba(139, 92, 246, 0.1) 0%, transparent 25%);
+            overflow-x: hidden;
+        }
+
+        /* --- Main Container --- */
+        .container {
+            max-width: 900px;
+            width: 100%;
+            background: var(--bg-card);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 24px;
+            border: 1px solid var(--border-color);
+            padding: 40px;
+            box-shadow: var(--shadow-lg);
+            animation: fadeIn 0.8s ease-out;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(
+                to bottom right,
+                rgba(255, 255, 255, 0.1),
+                rgba(255, 255, 255, 0.01)
+            );
+            transform: rotate(30deg);
+            z-index: -1;
+        }
+
+        .container:hover {
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            transform: translateY(-5px);
+        }
+
+        /* --- Header Styles --- */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--gradient);
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+        }
+
+        .logo i {
+            font-size: 36px;
+            color: white;
+        }
+
+        h1 {
+            font-size: 2.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--secondary-light), var(--secondary));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            font-weight: 300;
+            margin-bottom: 0;
+        }
+
+        /* --- Agent Introduction --- */
+        .agent-intro {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(15, 23, 42, 0.4);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+        }
+
+        .agent-intro h3 {
+            color: var(--secondary);
+            margin-bottom: 15px;
+            font-size: 1.4rem;
+        }
+
+        .agent-cards {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .agent-card {
+            background: rgba(15, 23, 42, 0.6);
+            border-radius: 12px;
+            padding: 15px;
+            width: 150px;
+            text-align: center;
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+        }
+
+        .agent-card i {
+            font-size: 24px;
+            color: var(--secondary);
+            margin-bottom: 10px;
+        }
+
+        .agent-card h4 {
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            margin-bottom: 5px;
+        }
+
+        .agent-card p {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        .agent-card.active {
+            animation: glow 2s infinite;
+            border-color: var(--primary);
+            transform: translateY(-5px);
+        }
+
+        .agent-card.completed {
+            border-color: var(--success);
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        /* --- Form Styles --- */
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 28px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        label {
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 10px;
+            font-size: 1.05rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        label i {
+            color: var(--secondary);
+        }
+
+        input[type="text"], select {
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 16px 18px;
+            border-radius: 16px;
+            font-size: 1rem;
+            font-family: 'Outfit', sans-serif;
+            transition: all 0.3s ease;
+            color-scheme: dark;
+        }
+
+        input[type="text"]::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        input[type="text"]:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.3);
+        }
+
+        /* Select dropdown styling */
+        select {
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23f59e0b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            background-size: 20px;
+            padding-right: 50px;
+        }
+
+        /* --- Button Styles --- */
+        .btn {
+            background: var(--gradient-secondary);
+            color: white;
+            padding: 18px 24px;
+            border: none;
+            border-radius: 16px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            box-shadow: 0 4px 6px rgba(245, 158, 11, 0.25);
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 15px rgba(245, 158, 11, 0.35);
+            animation: pulse 1s;
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        /* --- Processing Visualization --- */
+        #processing {
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+
+        .processing-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .processing-header h2 {
+            color: var(--secondary);
+            font-size: 1.8rem;
+            margin-bottom: 10px;
+        }
+
+        .processing-header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        /* Agent Pipeline Visualization */
+        .agent-pipeline {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 40px 0;
+            position: relative;
+        }
+
+        .agent-pipeline::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 10%;
+            right: 10%;
+            height: 3px;
+            background: linear-gradient(90deg, 
+                var(--primary) 0%, 
+                var(--primary) 33%, 
+                var(--border-color) 33%, 
+                var(--border-color) 66%, 
+                var(--border-color) 66%);
+            background-size: 300% 100%;
+            background-position: 0% 0%;
+            transition: background-position 1.5s ease;
+            z-index: 1;
+        }
+
+        .agent-pipeline.progress-33::before {
+            background-position: -100% 0%;
+        }
+
+        .agent-pipeline.progress-66::before {
+            background-position: -200% 0%;
+        }
+
+        .agent-pipeline.progress-100::before {
+            background-position: -300% 0%;
+        }
+
+        .agent-stage {
+            position: relative;
+            z-index: 2;
+            text-align: center;
+            width: 120px;
+        }
+
+        .agent-icon {
+            width: 70px;
+            height: 70px;
+            background: var(--bg-dark);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 15px;
+            border: 3px solid var(--border-color);
+            transition: all 0.5s ease;
+        }
+
+        .agent-icon i {
+            font-size: 24px;
+            color: var(--text-secondary);
+        }
+
+        .agent-stage.active .agent-icon {
+            border-color: var(--primary);
+            background: rgba(99, 102, 241, 0.1);
+            animation: glow 2s infinite;
+        }
+
+        .agent-stage.active .agent-icon i {
+            color: var(--primary);
+        }
+
+        .agent-stage.completed .agent-icon {
+            border-color: var(--success);
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .agent-stage.completed .agent-icon i {
+            color: var(--success);
+        }
+
+        .agent-stage.processing .agent-icon i {
+            animation: spin 2s linear infinite;
+        }
+
+        .agent-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+
+        .agent-stage.active .agent-label {
+            color: var(--primary);
+        }
+
+        .agent-stage.completed .agent-label {
+            color: var(--success);
+        }
+
+        .agent-status {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            min-height: 20px;
+        }
+
+        /* Live Console Output */
+        .console-output {
+            background: rgba(15, 23, 42, 0.8);
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 30px;
+            border: 1px solid var(--border-color);
+            font-family: 'Courier New', monospace;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .console-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .console-header h3 {
+            color: var(--secondary);
+            font-size: 1.1rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .console-content {
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .console-line {
+            margin-bottom: 8px;
+            opacity: 0;
+            animation: fadeIn 0.5s forwards;
+        }
+
+        .console-line.agent-1 { animation-delay: 0.2s; }
+        .console-line.agent-2 { animation-delay: 0.4s; }
+        .console-line.agent-3 { animation-delay: 0.6s; }
+
+        .console-timestamp {
+            color: var(--accent);
+            margin-right: 10px;
+        }
+
+        .console-message {
+            color: var(--text-primary);
+        }
+
+        .console-success {
+            color: var(--success);
+        }
+
+        .console-warning {
+            color: var(--secondary);
+        }
+
+        .console-info {
+            color: var(--primary);
+        }
+
+        /* Progress Bar */
+        .progress-container {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            margin: 25px 0;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--accent));
+            width: 0%;
+            transition: width 0.5s ease;
+            border-radius: 4px;
+        }
+
+        /* --- Result Card --- */
+        #result-container {
+            margin-top: 30px;
+        }
+
+        .result-card {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 32px;
+            border-left: 4px solid var(--secondary);
+            box-shadow: var(--shadow);
+            animation: slideIn 0.8s ease-out;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .result-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: var(--gradient);
+        }
+
+        .result-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .result-header i {
+            font-size: 48px;
+            color: var(--success);
+            margin-bottom: 15px;
+            animation: pulse 2s infinite;
+        }
+
+        .result-header h2 {
+            color: var(--secondary);
+            margin-bottom: 10px;
+            font-size: 2rem;
+        }
+
+        .result-header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+        }
+
+        /* Error Message Styling */
+        .error-message {
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .error-message i {
+            font-size: 48px;
+            color: #ef4444;
+            margin-bottom: 20px;
+        }
+
+        .error-message h2 {
+            color: #ef4444;
+            margin-bottom: 15px;
+        }
+
+        /* Markdown Content Styling */
+        .result-card h2 {
+            color: var(--secondary);
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 10px;
+            margin-top: 30px;
+        }
+
+        .result-card h3 {
+            color: var(--primary);
+            margin-top: 25px;
+        }
+
+        .result-card ul, .result-card ol {
+            background: rgba(15, 23, 42, 0.3);
+            border-radius: 12px;
+            padding: 20px 30px;
+            margin: 20px 0;
+        }
+
+        .result-card li {
+            margin-bottom: 12px;
+            line-height: 1.6;
+        }
+
+        .result-card strong {
+            color: var(--secondary);
+        }
+
+        .result-card a {
+            color: var(--secondary);
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-bottom: 1px dotted var(--secondary);
+        }
+
+        .result-card a:hover {
+            color: var(--secondary-light);
+            border-bottom: 1px solid var(--secondary-light);
+        }
+
+        .result-card blockquote {
+            border-left: 4px solid var(--secondary);
+            padding-left: 20px;
+            margin-left: 0;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        .result-card code {
+            background: rgba(15, 23, 42, 0.6);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Fira Code', monospace;
+            color: var(--secondary-light);
+        }
+
+        .btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-top: 30px;
+            background: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+        }
+
+        .btn-secondary:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+        }
+
+        /* --- Responsive Design --- */
+        @media (max-width: 768px) {
+            .container {
+                padding: 30px 20px;
+                border-radius: 20px;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .subtitle {
+                font-size: 1.1rem;
+            }
+            
+            .logo {
+                width: 70px;
+                height: 70px;
+            }
+            
+            input[type="text"], select, .btn {
+                padding: 14px 16px;
+            }
+            
+            .agent-pipeline {
+                flex-direction: column;
+                gap: 30px;
+            }
+            
+            .agent-pipeline::before {
+                display: none;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 1.9rem;
+            }
+            
+            .subtitle {
+                font-size: 1rem;
+            }
+            
+            label {
+                font-size: 1rem;
+            }
+            
+            .result-card {
+                padding: 24px 20px;
+            }
+            
+            .result-card h2 {
+                font-size: 1.5rem;
+            }
+            
+            .result-card h3 {
+                font-size: 1.2rem;
+            }
+        }
+
+        /* --- Particle Background Effect --- */
+        .particles-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+        }
+
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            opacity: 0.3;
+        }
+    </style>
+</head>
+<body>
+    <!-- Particle Background -->
+    <div class="particles-container" id="particles-container"></div>
+
+    <div class="container" id="main-container">
+        <div class="header">
+            <div class="logo">
+                <i class="fas fa-graduation-cap"></i>
+            </div>
+            <h1>Edu Recommender</h1>
+            <p class="subtitle">Navigating Tomorrow's Careers with AI</p>
+        </div>
+        
+        <!-- Agent Introduction -->
+        <div class="agent-intro">
+            <h3>🤖 Meet Your AI Learning Agents</h3>
+            <p>Three specialized AI agents work together to create your personalized learning roadmap</p>
+            <div class="agent-cards">
+                <div class="agent-card" id="intro-market">
+                    <i class="fas fa-chart-line"></i>
+                    <h4>Market Analyst</h4>
+                    <p>Analyzes industry trends</p>
+                </div>
+                <div class="agent-card" id="intro-curriculum">
+                    <i class="fas fa-book-open"></i>
+                    <h4>Curriculum Designer</h4>
+                    <p>Creates learning structure</p>
+                </div>
+                <div class="agent-card" id="intro-strategist">
+                    <i class="fas fa-chess-king"></i>
+                    <h4>Chief Strategist</h4>
+                    <p>Finalizes roadmap</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Form -->
+        <form id="co-pilot-form">
+            <div class="form-group">
+                <label for="current_skills"><i class="fas fa-code"></i> Current Skills & Expertise</label>
+                <input type="text" id="current_skills" name="current_skills" placeholder="e.g., Python, basic SQL, communication skills" required>
+            </div>
+            <div class="form-group">
+                <label for="career_goal"><i class="fas fa-bullseye"></i> Career Goal / Target Role</label>
+                <input type="text" id="career_goal" name="career_goal" placeholder="e.g., AI Engineer, Full-Stack Developer, Data Scientist" required>
+            </div>
+            <div class="form-group">
+                <label for="learning_style"><i class="fas fa-book-open"></i> Preferred Learning Style</label>
+                <select id="learning_style" name="learning_style">
+                    <option value="project-based">Project-Based (hands-on)</option>
+                    <option value="text-based">Text-Based (articles, books)</option>
+                    <option value="visual">Visual (videos, tutorials)</option>
+                    <option value="balanced" selected>A balanced mix</option>
+                </select>
+            </div>
+            <button type="submit" class="btn">
+                <i class="fas fa-rocket"></i> LAUNCH AI AGENTS
+            </button>
+        </form>
+
+        <!-- Processing Visualization -->
+        <div id="processing" style="display: none;">
+            <div class="processing-header">
+                <h2><i class="fas fa-cogs"></i> AI Agents in Action</h2>
+                <p>Watch as our specialized agents work together to create your personalized learning roadmap</p>
+            </div>
+
+            <!-- Agent Pipeline -->
+            <div class="agent-pipeline" id="agent-pipeline">
+                <div class="agent-stage" id="agent-1">
+                    <div class="agent-icon">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="agent-label">Market Analyst</div>
+                    <div class="agent-status" id="agent-1-status">Waiting...</div>
+                </div>
+                <div class="agent-stage" id="agent-2">
+                    <div class="agent-icon">
+                        <i class="fas fa-book-open"></i>
+                    </div>
+                    <div class="agent-label">Curriculum Designer</div>
+                    <div class="agent-status" id="agent-2-status">On standby</div>
+                </div>
+                <div class="agent-stage" id="agent-3">
+                    <div class="agent-icon">
+                        <i class="fas fa-chess-king"></i>
+                    </div>
+                    <div class="agent-label">Chief Strategist</div>
+                    <div class="agent-status" id="agent-3-status">Ready</div>
+                </div>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="progress-container">
+                <div class="progress-bar" id="progress-bar"></div>
+            </div>
+
+            <!-- Live Console -->
+            <div class="console-output">
+                <div class="console-header">
+                    <h3><i class="fas fa-terminal"></i> Agent Activity Log</h3>
+                    <span class="console-timestamp" id="console-time">00:00:00</span>
+                </div>
+                <div class="console-content" id="console-content">
+                    <!-- Console messages will appear here -->
+                </div>
+            </div>
+        </div>
+        
+        <!-- Results Container -->
+        <div id="result-container"></div>
+    </div>
+
+    <script>
+        // ============================================
+        // PARTICLE BACKGROUND
+        // ============================================
+        function createParticles() {
+            const container = document.getElementById('particles-container');
+            const particleCount = 15;
+            
+            for (let i = 0; i < particleCount; i++) {
+                const particle = document.createElement('div');
+                particle.classList.add('particle');
+                
+                const size = Math.random() * 15 + 5;
+                const posX = Math.random() * 100;
+                const posY = Math.random() * 100;
+                const delay = Math.random() * 5;
+                const duration = Math.random() * 15 + 10;
+                
+                particle.style.width = `${size}px`;
+                particle.style.height = `${size}px`;
+                particle.style.left = `${posX}vw`;
+                particle.style.top = `${posY}vh`;
+                particle.style.animation = `float ${duration}s ease-in-out ${delay}s infinite`;
+                
+                const gradients = [
+                    `linear-gradient(45deg, #6366f1, #8b5cf6)`,
+                    `linear-gradient(45deg, #f59e0b, #f97316)`,
+                    `linear-gradient(45deg, #10b981, #0ea5e9)`
+                ];
+                particle.style.background = gradients[Math.floor(Math.random() * gradients.length)];
+                
+                container.appendChild(particle);
+            }
+        }
+        
+        // ============================================
+        // INITIALIZATION
+        // ============================================
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Edu Recommender initialized');
+            
+            // Setup form submission
+            const form = document.getElementById('co-pilot-form');
+            if (form) {
+                form.addEventListener('submit', function(event) {
+                    event.preventDefault();
+                    console.log('📝 Form submitted');
+                    startProcessing();
+                });
+            }
+            
+            // Update console time every second
+            updateConsoleTime();
+            setInterval(updateConsoleTime, 1000);
+            
+            // Create particle background
+            createParticles();
+        });
+        
+        // ============================================
+        // CONSOLE FUNCTIONS
+        // ============================================
+        function updateConsoleTime() {
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', {hour12: false});
+            const timeElement = document.getElementById('console-time');
+            if (timeElement) {
+                timeElement.textContent = timeString;
+            }
+        }
+        
+        function addConsoleMessage(message, type = 'info') {
+            const consoleContent = document.getElementById('console-content');
+            if (!consoleContent) return;
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `console-line`;
+            
+            const now = new Date();
+            const timeString = now.toLocaleTimeString('en-US', {hour12: false});
+            
+            let typeClass = 'console-info';
+            if (type === 'success') typeClass = 'console-success';
+            if (type === 'warning') typeClass = 'console-warning';
+            if (type === 'error') typeClass = 'console-warning';
+            
+            messageDiv.innerHTML = `
+                <span class="console-timestamp">${timeString}</span>
+                <span class="console-message ${typeClass}">${message}</span>
+            `;
+            
+            consoleContent.appendChild(messageDiv);
+            consoleContent.scrollTop = consoleContent.scrollHeight;
+            
+            // Also log to browser console for debugging
+            console.log(`[Console] ${message}`);
+        }
+        
+        // ============================================
+        // PROCESSING FUNCTIONS
+        // ============================================
+        function startProcessing() {
+            // Get form data
+            const form = document.getElementById('co-pilot-form');
+            const formData = new FormData(form);
+            const careerGoal = formData.get('career_goal');
+            const currentSkills = formData.get('current_skills');
+            
+            console.log('📤 Starting processing for:', careerGoal);
+            
+            // Hide form and show processing
+            document.getElementById('co-pilot-form').style.display = 'none';
+            document.getElementById('processing').style.display = 'block';
+            
+            // Clear console and results
+            document.getElementById('console-content').innerHTML = '';
+            document.getElementById('result-container').innerHTML = '';
+            
+            // Reset pipeline
+            resetPipeline();
+            
+            // Add initial console messages
+            addConsoleMessage('🚀 Initializing AI agents...', 'info');
+            addConsoleMessage(`🎯 Career Goal: ${careerGoal}`, 'info');
+            addConsoleMessage(`💪 Current Skills: ${currentSkills || 'Not specified'}`, 'info');
+            addConsoleMessage('⏳ Connecting to backend...', 'info');
+            
+            // Start backend call
+            callBackendAPI(formData);
+        }
+        
+        function resetPipeline() {
+            console.log('🔄 Resetting pipeline');
+            
+            // Reset agent status
+            for (let i = 1; i <= 3; i++) {
+                const agent = document.getElementById(`agent-${i}`);
+                const status = document.getElementById(`agent-${i}-status`);
+                
+                if (agent) {
+                    agent.classList.remove('active', 'completed', 'processing');
+                }
+                if (status) {
+                    status.textContent = 'Waiting...';
+                }
+            }
+            
+            // Reset pipeline progress
+            const pipeline = document.getElementById('agent-pipeline');
+            if (pipeline) {
+                pipeline.className = 'agent-pipeline';
+            }
+            
+            // Reset progress bar
+            const progressBar = document.getElementById('progress-bar');
+            if (progressBar) {
+                progressBar.style.width = '0%';
+            }
+        }
+        
+        function updateAgentStatus(agentNumber, status, message = '') {
+            console.log(`🤖 Agent ${agentNumber}: ${status} - ${message}`);
+            
+            const agent = document.getElementById(`agent-${agentNumber}`);
+            const statusElement = document.getElementById(`agent-${agentNumber}-status`);
+            const pipeline = document.getElementById('agent-pipeline');
+            const progressBar = document.getElementById('progress-bar');
+            
+            if (!agent || !statusElement) return;
+            
+            // Remove all status classes
+            agent.classList.remove('active', 'completed', 'processing');
+            
+            // Update based on status
+            switch(status) {
+                case 'active':
+                    agent.classList.add('active', 'processing');
+                    statusElement.textContent = message || 'Processing...';
+                    break;
+                case 'completed':
+                    agent.classList.add('completed');
+                    statusElement.textContent = message || 'Complete ✓';
+                    break;
+                case 'waiting':
+                    statusElement.textContent = message || 'Waiting...';
+                    break;
+            }
+            
+            // Update pipeline progress
+            if (pipeline) {
+                if (agentNumber === 1 && status === 'active') {
+                    pipeline.classList.add('progress-33');
+                } else if (agentNumber === 2 && status === 'active') {
+                    pipeline.classList.remove('progress-33');
+                    pipeline.classList.add('progress-66');
+                } else if (agentNumber === 3 && status === 'active') {
+                    pipeline.classList.remove('progress-66');
+                    pipeline.classList.add('progress-100');
+                }
+            }
+            
+            // Update progress bar
+            if (progressBar) {
+                if (agentNumber === 1 && status === 'active') {
+                    progressBar.style.width = '33%';
+                } else if (agentNumber === 2 && status === 'active') {
+                    progressBar.style.width = '66%';
+                } else if (agentNumber === 3 && status === 'active') {
+                    progressBar.style.width = '95%';
+                } else if (status === 'completed' && agentNumber === 3) {
+                    progressBar.style.width = '100%';
+                }
+            }
+        }
+        
+        // ============================================
+        // BACKEND COMMUNICATION
+        // ============================================
+        function callBackendAPI(formData) {
+            console.log('🌐 Calling backend API...');
+            addConsoleMessage('🔗 Establishing connection with backend...', 'info');
+            
+            // Show first agent as active
+            updateAgentStatus(1, 'active', 'Starting analysis...');
+            
+            // Send POST request to Flask backend
+            fetch('/generate', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                console.log('✅ Backend response received');
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+                
+                if (!response.body) {
+                    throw new Error('Response body is null');
+                }
+                
+                // Read the stream
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                
+                function readStream() {
+                    return reader.read().then(({ done, value }) => {
+                        if (done) {
+                            console.log('📭 Stream reading complete');
+                            return;
+                        }
+                        
+                        // Decode the chunk
+                        const chunk = decoder.decode(value, { stream: true });
+                        console.log('📦 Raw chunk received:', chunk);
+                        
+                        // Split by double newlines (SSE format)
+                        const lines = chunk.split('\n\n');
+                        
+                        lines.forEach(line => {
+                            if (line.trim() === '') return;
+                            
+                            console.log('📝 Processing line:', line);
+                            
+                            // Handle different message types
+                            if (line.startsWith('data: ')) {
+                                const message = line.substring(6).trim();
+                                
+                                if (message.startsWith('ERROR:')) {
+                                    const errorMsg = message.substring(6);
+                                    addConsoleMessage(`❌ ${errorMsg}`, 'error');
+                                    showError(errorMsg);
+                                } else {
+                                    addConsoleMessage(`🔧 ${message}`, 'info');
+                                    
+                                    // Update agent status based on message content
+                                    if (message.includes('Step 1/3')) {
+                                        updateAgentStatus(1, 'active', 'Analyzing market...');
+                                    } else if (message.includes('Step 2/3')) {
+                                        updateAgentStatus(1, 'completed', 'Analysis complete ✓');
+                                        updateAgentStatus(2, 'active', 'Designing curriculum...');
+                                    } else if (message.includes('Step 3/3')) {
+                                        updateAgentStatus(2, 'completed', 'Curriculum designed ✓');
+                                        updateAgentStatus(3, 'active', 'Finalizing roadmap...');
+                                    } else if (message.includes('✅')) {
+                                        // Success messages
+                                        if (message.includes('Market analysis')) {
+                                            updateAgentStatus(1, 'completed', 'Analysis complete ✓');
+                                        } else if (message.includes('Learning plan')) {
+                                            updateAgentStatus(2, 'completed', 'Curriculum designed ✓');
+                                        }
+                                    }
+                                }
+                            }
+                            else if (line.startsWith('result: ')) {
+                                const jsonData = line.substring(8).trim();
+                                console.log('🎯 Result received:', jsonData);
+                                
+                                try {
+                                    const result = JSON.parse(jsonData);
+                                    addConsoleMessage('✅ All agents completed successfully!', 'success');
+                                    updateAgentStatus(3, 'completed', 'Roadmap finalized ✓');
+                                    
+                                    // Show final result
+                                    setTimeout(() => showFinalResult(result), 1000);
+                                } catch (e) {
+                                    console.error('❌ JSON parse error:', e);
+                                    addConsoleMessage('❌ Failed to parse response', 'error');
+                                    showError('Failed to parse server response');
+                                }
+                            }
+                        });
+                        
+                        // Continue reading
+                        return readStream();
+                    });
+                }
+                
+                // Start reading the stream
+                return readStream();
+            })
+            .catch(error => {
+                console.error('❌ Fetch error:', error);
+                addConsoleMessage(`❌ Connection failed: ${error.message}`, 'error');
+                showError(`Backend connection failed: ${error.message}`);
+                
+                // Show demo data as fallback
+                setTimeout(() => showDemoResult(formData), 2000);
+            });
+        }
+        
+        // ============================================
+        // RESULT DISPLAY
+        // ============================================
+        function showFinalResult(result) {
+            console.log('🎉 Showing final result');
+            addConsoleMessage('📊 Displaying your personalized roadmap...', 'success');
+            
+            setTimeout(() => {
+                // Hide processing
+                document.getElementById('processing').style.display = 'none';
+                
+                // Show result
+                const resultContainer = document.getElementById('result-container');
+                if (resultContainer) {
+                    resultContainer.innerHTML = result;
+                    
+                    // Smooth scroll to result
+                    resultContainer.scrollIntoView({ 
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                }
+            }, 1000);
+        }
+        
+        function showDemoResult(formData) {
+            console.log('🔄 Showing demo result (fallback)');
+            
+            const careerGoal = formData.get('career_goal') || 'AI Engineer';
+            const currentSkills = formData.get('current_skills') || 'Not specified';
+            const learningStyle = formData.get('learning_style') || 'balanced';
+            
+            updateAgentStatus(1, 'completed', 'Demo mode');
+            updateAgentStatus(2, 'completed', 'Demo mode');
+            updateAgentStatus(3, 'completed', 'Demo mode');
+            
+            document.getElementById('progress-bar').style.width = '100%';
+            
+            setTimeout(() => {
+                document.getElementById('processing').style.display = 'none';
+                
+                const resultContainer = document.getElementById('result-container');
+                if (resultContainer) {
+                    resultContainer.innerHTML = `
+                        <div class="result-card">
+                            <div class="result-header">
+                                <i class="fas fa-rocket"></i>
+                                <h2>Demo Mode: Your Learning Roadmap</h2>
+                                <p>Generated with AI Agents • Target: <strong>${careerGoal}</strong></p>
+                                <div style="background: rgba(245, 158, 11, 0.1); padding: 10px; border-radius: 8px; margin-top: 15px;">
+                                    <i class="fas fa-info-circle"></i> 
+                                    <span style="font-size: 0.9rem;">
+                                        This is a demo. Connect to Flask backend with API key for AI-generated content.
+                                    </span>
+                                </div>
+                            </div>
+                            
+                            <h3>🎯 3-Month ${careerGoal} Learning Roadmap</h3>
+                            <p>Your personalized learning journey starts here!</p>
+                            
+                            <h3>📅 Month 1: Foundation Building</h3>
+                            <ul>
+                                <li><strong>Weeks 1-2:</strong> Core concepts and fundamentals</li>
+                                <li><strong>Weeks 3-4:</strong> Hands-on exercises and projects</li>
+                                <li><strong>Learning Style:</strong> ${learningStyle}</li>
+                            </ul>
+                            
+                            <h3>🚀 Month 2: Skill Development</h3>
+                            <ul>
+                                <li><strong>Weeks 5-8:</strong> Advanced topics and real-world applications</li>
+                                <li><strong>Projects:</strong> Portfolio development</li>
+                                <li><strong>Current Skills Leveraged:</strong> ${currentSkills}</li>
+                            </ul>
+                            
+                            <h3>🏆 Month 3: Mastery & Job Readiness</h3>
+                            <ul>
+                                <li><strong>Weeks 9-12:</strong> Specialization and advanced techniques</li>
+                                <li><strong>Career Preparation:</strong> Interview practice and networking</li>
+                                <li><strong>Goal:</strong> Job-ready ${careerGoal}</li>
+                            </ul>
+                            
+                            <h3>💡 Next Steps</h3>
+                            <ol>
+                                <li>Set up your development environment</li>
+                                <li>Join relevant online communities</li>
+                                <li>Start with the first week's curriculum</li>
+                                <li>Track your progress weekly</li>
+                            </ol>
+                            
+                            <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid rgba(255,255,255,0.1);">
+                                <a href="/" class="btn-secondary">
+                                    <i class="fas fa-arrow-left"></i> Try Again with Backend
+                                </a>
+                                <button onclick="testBackendConnection()" class="btn-secondary" style="margin-left: 10px;">
+                                    <i class="fas fa-plug"></i> Test Backend Connection
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    resultContainer.scrollIntoView({ behavior: 'smooth' });
+                }
+            }, 1500);
+        }
+        
+        function showError(message) {
+            console.error('❌ Showing error:', message);
+            
+            setTimeout(() => {
+                document.getElementById('processing').style.display = 'none';
+                document.getElementById('co-pilot-form').style.display = 'block';
+                
+                const resultContainer = document.getElementById('result-container');
+                if (resultContainer) {
+                    resultContainer.innerHTML = `
+                        <div class="result-card">
+                            <div class="error-message">
+                                <i class="fas fa-exclamation-triangle"></i>
+                                <h2>Connection Error</h2>
+                                <p>${message}</p>
+                                <p style="margin-top: 15px;">Please ensure:</p>
+                                <ol style="text-align: left; margin: 15px auto; max-width: 500px;">
+                                    <li>Flask server is running (<code>python app.py</code>)</li>
+                                    <li>Port 5000 is available</li>
+                                    <li>API key is configured in .env file</li>
+                                    <li>No firewall is blocking the connection</li>
+                                </ol>
+                            </div>
+                            <div style="margin-top: 30px;">
+                                <button onclick="testBackendConnection()" class="btn-secondary">
+                                    <i class="fas fa-plug"></i> Test Backend Connection
+                                </button>
+                                <a href="/" class="btn-secondary" style="margin-left: 10px;">
+                                    <i class="fas fa-arrow-left"></i> Try Again
+                                </a>
+                            </div>
+                        </div>
+                    `;
+                }
+            }, 1000);
+        }
+        
+        // ============================================
+        // UTILITY FUNCTIONS
+        // ============================================
+        async function testBackendConnection() {
+            console.log('🔧 Testing backend connection...');
+            
+            try {
+                const response = await fetch('/health');
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}`);
+                }
+                
+                const data = await response.json();
+                console.log('✅ Backend health:', data);
+                
+                alert(`✅ Backend Connection Successful!\n\nStatus: ${data.status}\nService: ${data.service || 'Edu Recommender'}\n\nYou can now generate AI-powered roadmaps!`);
+                
+            } catch (error) {
+                console.error('❌ Backend test failed:', error);
+                
+                alert(`❌ Backend Connection Failed\n\nError: ${error.message}\n\nMake sure:\n1. Flask server is running (python app.py)\n2. Port 5000 is available\n3. Check terminal for any errors`);
+            }
+        }
+        
+        // ============================================
+        // EXPORT FUNCTIONS FOR GLOBAL ACCESS
+        // ============================================
+        window.createParticles = createParticles;
+        window.testBackendConnection = testBackendConnection;
+        window.showError = showError;
+        
+        console.log('🎉 JavaScript loaded successfully!');
+    </script>
+</body>
+</html>
