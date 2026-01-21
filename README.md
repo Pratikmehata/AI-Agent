@@ -20,7 +20,6 @@ AI AGENT/
 │── app.py             # Main Flask application
 │── requirements.txt   # Python dependencies
 │── Procfile.txt       # Deployment configuration (Heroku/Render)
-│── render.yaml        # Render deployment configuration
 │── runtime.txt        # Python runtime version
 │── README.md          # Project documentation
 
@@ -72,17 +71,16 @@ AI AGENT/
 
 ---
 
-## 🌐 Deployment on Render
+## 🌐 Deployment on Railway // for SSE
 
-This project is configured to be deployed on [Render](https://render.com).
+This project is configured to be deployed on Railway
 
 ### Steps:
 
 1. Push your code to GitHub.
-2. Connect Render to your GitHub repository.
-3. Render automatically detects:
-
-   * `render.yaml` → Service configuration
+2. Connect railway to your GitHub repository.
+3. Railway automatically detects:
+   set environment variable at the setting in railways 
    * `requirements.txt` → Python dependencies
    * `Procfile.txt` → Command to run the app
    * `runtime.txt` → Python version
